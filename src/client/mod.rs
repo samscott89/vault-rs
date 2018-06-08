@@ -201,8 +201,9 @@ pub struct TokenData {
 
 /// Secret data, used in `VaultResponse`
 #[derive(Deserialize, Serialize, Debug)]
-struct SecretData {
-    value: String,
+pub struct SecretData {
+    /// K/V pairs for recovered secret data
+    pub data: HashMap<String, String>,
 }
 
 /// Transit decrypted data, used in `VaultResponse`
@@ -832,11 +833,11 @@ impl<T> VaultClient<T>
     /// assert_eq!(res.unwrap(), "world");
     /// # }
     /// ```
-    pub fn get_secret<S: AsRef<str>>(&self, key: S) -> Result<String> {
+    pub fn get_secret<S: AsRef<str>>(&self, key: S) -> Result<HashMap<String, String>> {
         let res = try!(self.get::<_, String>(&format!("/v1/secret/{}", key.as_ref())[..], None));
         let decoded: VaultResponse<SecretData> = parse_vault_response(res)?;
         match decoded.data {
-            Some(data) => Ok(data.value),
+            Some(data) => Ok(data.data),
             _ => Err(Error::Vault(format!("No secret found in response: `{:#?}`", decoded))),
         }
     }
